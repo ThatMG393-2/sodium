@@ -134,6 +134,13 @@ public class MappedStagingBuffer implements StagingBuffer {
 
     @Override
     public void delete(CommandList commandList) {
+        // https://github.com/CaffeineMC/sodium/commit/d91d2801447155704f899dd602fd4ff2cfacc390
+        while (!this.fencedRegions.isEmpty()) {
+            var fence = this.fencedRegions.dequeue().fence();
+            fence.sync();
+            fence.delete();
+        }
+        
         this.mappedBuffer.delete(commandList);
         this.fallbackStagingBuffer.delete(commandList);
         this.pendingCopies.clear();
